@@ -77,6 +77,13 @@ server.put('/diasferiados/:id',(req,res)=>{
     })
 })
 
+server.delete('/diasferiados/:id',(req,res)=>{
+    const {id} = req.params
+    Feriados.deleteOne({_id: id}).then((resultado)=>{
+        res.status(204).json()
+    })
+})
+
 //Errores genericos de Express
 server.use((err,req,res,next)=>{
     if(!err) return next();
