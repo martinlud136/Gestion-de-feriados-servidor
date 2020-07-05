@@ -73,10 +73,9 @@ server.get('/diasferiados/:id',(req,res)=>{
     })
 })
 // modificar un feriado
-server.put('/diasferiados/:id',(req,res)=>{
+server.put('/diasferiados/:id',validarAdmin,(req,res)=>{
     const{id} = req.params
     const {motivo,tipo,info} = req.body
-    console.log(motivo,tipo,info)
     Feriados.findOne({_id: id}).then((resultado)=>{
         resultado.motivo= motivo
         resultado.tipo = tipo
@@ -86,7 +85,7 @@ server.put('/diasferiados/:id',(req,res)=>{
     })
 })
 //Eliminar un feriado
-server.delete('/diasferiados/:id',(req,res)=>{
+server.delete('/diasferiados/:id',validarAdmin,(req,res)=>{
     const {id} = req.params
     Feriados.deleteOne({_id: id}).then((resultado)=>{
         res.status(204).json()
@@ -94,7 +93,7 @@ server.delete('/diasferiados/:id',(req,res)=>{
 })
 
 //Crear un feriado
-server.post('/diasferiados',(req,res)=>{
+server.post('/diasferiados',validarAdmin, (req,res)=>{
     const datos = req.body;
     const nuevoiferiado = new Feriados(datos);
     nuevoiferiado.save({new:true}).then((feriado)=>{
@@ -122,19 +121,19 @@ server.post('/login', (req,res)=>{
         }
 })
 
-const validarAdmin = (req,res,next)=> {
+function validarAdmin(req,res,next) {
     try {
+
         const token = req.headers.authorization.split(' ')[1];
         let decode = jwt.verify(token, sign);
-        if(decode.es_admin === "true"){
-            
+        if(decode.es_admin === true){
             req.usuario = decode;
             next();
         }else{
-            throw "Usuario sin acceso";
+            throw "Usuario no autorizado";
         }
     } catch (error) {
-        res.status(401).json({msj: 'Usuario no autorizado'})
+        res.status(401).json({msj: 'Error en la autenticación'})
     }
 }
 
