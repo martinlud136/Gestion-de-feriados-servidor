@@ -8,10 +8,6 @@ require('dotenv/config')
 
 server.listen(5000,()=> console.log('servidor iniciado...'))
 
-// Replace <password> with the password for the admin user.
-// Replace <dbname> with the name of the database that connections will use by default.
-// Ensure any option params are URL encoded.
-
 mongoose.connect(process.env.dbConection,
 { useUnifiedTopology: true, useNewUrlParser: true },
 ()=>console.log('connect to db...'))
@@ -33,7 +29,7 @@ server.get('/usuarios',(req,res)=>{
         res.json(resultado)
     })
 })
-
+// Obtener el listado de feriados anual
 server.get('/diasferiados',(req,res)=>{
 
     Feriados.find().then((resultado)=>{
@@ -46,7 +42,6 @@ server.get('/diasferiados',(req,res)=>{
                 if (err){ 
                     return console.error(err);
                 } else {
-                  console.log("Multiple documents inserted to Collection");
                   res.json(data)
                 }
               });
@@ -57,13 +52,34 @@ server.get('/diasferiados',(req,res)=>{
 
 })
 
-server.post('/usuarios',(req,res)=>{
-    const datos = req.body;
+//obtener un feriado por id
+server.get('/diasferiados/:id',(req,res)=>{
+    const{id} = req.params
 
-    const nuevoUsuario = new Usuario(datos);
-    nuevoUsuario.save({new:true}).then((usuario)=>{
-        res.status(201);
-        res.json(usuario);
-    });
+    Inmueble.find({_id: id}).then((resultado)=>{
+        if(resultado.length === 0 || undefined){
+            res.status(404).json({'Error': 'Feriado Inexistente'})
+        }
+        res.json(resultado)
+    })
+})
+// actualizar un feriado
+server.put('/diasferiados/:id',(req,res)=>{
+    const{id} = req.params
+    const {motivo,tipo,info} = req.body
 
+    Inmueble.findOne({_id: id}).then((resultado)=>{
+        resultado.motivo= motivo
+        resultado.tipo = tipo
+        resultado.info = info
+        resultado.save()
+        res.json(resultado)
+    })
+})
+
+//Errores genericos de Express
+server.use((err,req,res,next)=>{
+    if(!err) return next();
+    console.log('Error, algo salio mal', err);
+    res.status(500).send('Error');
 })
