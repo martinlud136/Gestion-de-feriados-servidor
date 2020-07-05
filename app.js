@@ -4,18 +4,25 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const fetch = require('node-fetch')
+const jwt = require('jsonwebtoken')
 require('dotenv/config')
+
+const sign = process.env.firma
 
 server.listen(5000,()=> console.log('servidor iniciado...'))
 
-mongoose.connect(process.env.dbConection,
+const ferConnect = mongoose.createConnection(process.env.dbConection,
 { useUnifiedTopology: true, useNewUrlParser: true },
 ()=>console.log('connect to db...'))
+
+const userConnect = mongoose.createConnection(process.env.dbConectionUser,
+    { useUnifiedTopology: true, useNewUrlParser: true },
+    ()=>console.log('connect to dbUser...'))
 
 server.use(cors())
 server.use(bodyParser.json())
 
-const Feriados = mongoose.model('Feriados',{
+const Feriados = ferConnect.model('Feriados',{
     "motivo": String,
     "tipo": String,
     "info": String,
@@ -24,11 +31,13 @@ const Feriados = mongoose.model('Feriados',{
     "id": String    
   })
 
-server.get('/usuarios',(req,res)=>{
-    Usuario.find().then((resultado)=>{
-        res.json(resultado)
-    })
+
+const Usuarios = userConnect.model('Usuarios',{
+    "usuario": String,
+    "contrasena": String,
+    "es_admin": Boolean
 })
+
 // Obtener el listado de feriados anual
 server.get('/diasferiados',(req,res)=>{
  
@@ -94,6 +103,40 @@ server.post('/diasferiados',(req,res)=>{
     });
 
 })
+
+//login admin
+server.post('/login', (req,res)=>{
+    const {usuario, contrasena} = req.body
+    try{
+        Usuarios.find({usuario,contrasena}).then((resultado)=>{
+            console.log('resultado: ',resultado)
+            if(resultado.length === 0 || undefined){
+                res.status(404).json({'Error': 'Usuario o contraseña incorrectos'})
+            }else{
+                let token = jwt.sign({ usuario: resultado[0].usuario, es_admin: resultado[0].es_admin}, sign);
+                return res.status(200).json({token})
+            }
+        })
+        }catch(e){
+            res.status(500).json({msj: 'Error del servidor'}).end()
+        }
+})
+
+const validarAdmin = (req,res,next)=> {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        let decode = jwt.verify(token, sign);
+        if(decode.es_admin === "true"){
+            
+            req.usuario = decode;
+            next();
+        }else{
+            throw "Usuario sin acceso";
+        }
+    } catch (error) {
+        res.status(401).json({msj: 'Usuario no autorizado'})
+    }
+}
 
 //Errores genericos de Express
 server.use((err,req,res,next)=>{
