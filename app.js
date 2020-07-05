@@ -56,19 +56,19 @@ server.get('/diasferiados',(req,res)=>{
 server.get('/diasferiados/:id',(req,res)=>{
     const{id} = req.params
 
-    Inmueble.find({_id: id}).then((resultado)=>{
+    Feriados.find({_id: id}).then((resultado)=>{
         if(resultado.length === 0 || undefined){
             res.status(404).json({'Error': 'Feriado Inexistente'})
         }
         res.json(resultado)
     })
 })
-// actualizar un feriado
+// modificar un feriado
 server.put('/diasferiados/:id',(req,res)=>{
     const{id} = req.params
     const {motivo,tipo,info} = req.body
-
-    Inmueble.findOne({_id: id}).then((resultado)=>{
+    console.log(motivo,tipo,info)
+    Feriados.findOne({_id: id}).then((resultado)=>{
         resultado.motivo= motivo
         resultado.tipo = tipo
         resultado.info = info
