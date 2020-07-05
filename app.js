@@ -31,7 +31,7 @@ server.get('/usuarios',(req,res)=>{
 })
 // Obtener el listado de feriados anual
 server.get('/diasferiados',(req,res)=>{
-
+ 
     Feriados.find().then((resultado)=>{
 
         if(resultado.length === 0){
@@ -76,12 +76,23 @@ server.put('/diasferiados/:id',(req,res)=>{
         res.json(resultado)
     })
 })
-
+//Eliminar un feriado
 server.delete('/diasferiados/:id',(req,res)=>{
     const {id} = req.params
     Feriados.deleteOne({_id: id}).then((resultado)=>{
         res.status(204).json()
     })
+})
+
+//Crear un feriado
+server.post('/diasferiados',(req,res)=>{
+    const datos = req.body;
+    const nuevoiferiado = new Feriados(datos);
+    nuevoiferiado.save({new:true}).then((feriado)=>{
+        res.status(201);
+        res.json(feriado);
+    });
+
 })
 
 //Errores genericos de Express
