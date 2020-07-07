@@ -110,7 +110,7 @@ server.post('/login', (req,res)=>{
         Usuarios.find({usuario,contrasena}).then((resultado)=>{
             console.log('resultado: ',resultado)
             if(resultado.length === 0 || undefined){
-                res.status(404).json({'Error': 'Usuario o contraseña incorrectos'})
+                res.status(404).send('error')
             }else{
                 let token = jwt.sign({ usuario: resultado[0].usuario, es_admin: resultado[0].es_admin}, sign);
                 return res.status(200).json({token})
